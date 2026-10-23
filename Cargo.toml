@@ -1,0 +1,18 @@
+[package]
+name = "board-bases"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Two-way sync between GitHub Projects v2 boards and an Obsidian vault folder"
+
+[lib]
+name = "board_bases"
+path = "src/lib.rs"
+
+[[bin]]
+name = "board-bases"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
