@@ -62,7 +62,11 @@ pub fn plan(
             Some(e) => e.status != it.status,
         }),
     };
-    let vault_changed = note_exists && base.is_some() && vault_status != base.and_then(|b| b.status.as_deref());
+    // A missing or empty status line is not a vault edit: GitHub's value is restored.
+    // With no base snapshot (state file lost), any valid vault value counts as an edit,
+    // so a differing GitHub status surfaces as a CONFLICT instead of a silent revert.
+    let v_opt = vault_status.filter(|s| !s.is_empty());
+    let vault_changed = note_exists && v_opt.is_some() && base.map_or(true, |b| v_opt != b.status.as_deref());
 
     let mut acts = Vec::new();
     let mut snap = snapshot_from_github(present);
@@ -70,7 +74,7 @@ pub fn plan(
     let mut pushed = false;
 
     if vault_changed {
-        let v = vault_status.unwrap_or("");
+        let v = v_opt.unwrap_or("");
         if !STATUSES.contains(&v) {
             acts.push(Action::Warn(format!(
                 "{}: status '{}' is not Planned/In PR/Review/Done; left alone",
@@ -78,7 +82,9 @@ pub fn plan(
                 v
             )));
             write_status = v.to_string();
-            snap.status = base.and_then(|b| b.status.clone());
+            // Keep the last-synced snapshot, so a GitHub move made while the typo sits
+            // is still seen as a GitHub change once the note is fixed.
+            snap = base.cloned().unwrap_or(snap);
         } else if !gh_changed {
             for (bd, it) in present {
                 if it.status.as_deref() != Some(v) {

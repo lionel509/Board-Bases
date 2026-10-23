@@ -72,10 +72,10 @@ fn fetch_inner(gh: &dyn Gh, b: &BoardConfig) -> Result<(BoardData, Option<u64>),
     let mut budget = None;
     loop {
         let resp = gh.graphql(&query(&b.owner, b.number, after.as_deref()))?;
+        // Partial GraphQL errors (data plus errors) mean some items were not returned.
+        // Treating them as success would make the sync trash those items' notes.
         if let Some(e) = resp.get("errors") {
-            if resp["data"].is_null() {
-                return Err(format!("{}/{}: {}", b.owner, b.number, e));
-            }
+            return Err(format!("{}/{}: {}", b.owner, b.number, e));
         }
         let data = &resp["data"];
         if budget.is_none() {

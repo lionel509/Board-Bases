@@ -267,3 +267,26 @@ fn random_edits_keep_invariants() {
         assert!(r2.written.is_empty() && r2.bases.is_empty() && r2.trashed.is_empty() && r2.pushed == 0, "round {round}: second sync wrote");
     }
 }
+
+#[test]
+fn null_github_status_follows_github() {
+    let out = tmp("null-status");
+    let b = boards(1)[0].clone();
+    let conf = config(1);
+    let null_page = || {
+        let mut p = page(&b, &[(1, "Planned")]);
+        p["data"]["repositoryOwner"]["projectV2"]["items"]["nodes"][0]["fieldValueByName"] = serde_json::json!({"name": null});
+        p
+    };
+    sync::run(&FakeGh::with_pages(vec![null_page()]), &conf, &out, false, &mut Vec::new()).unwrap();
+    let mut log = Vec::new();
+    sync::run(&FakeGh::with_pages(vec![null_page()]), &conf, &out, false, &mut log).unwrap();
+    let log = String::from_utf8(log).unwrap();
+    assert!(!log.contains("WARN"), "second sync warned on a null status; log:\n{log}");
+
+    let gh = FakeGh::with_pages(vec![page(&b, &[(1, "Planned")])]);
+    let mut log = Vec::new();
+    sync::run(&gh, &conf, &out, false, &mut log).unwrap();
+    assert!(gh.pushes.borrow().is_empty(), "GitHub-only change must not push");
+    assert_eq!(read_status(&note_path(&out, 1)).as_deref(), Some("Planned"));
+}

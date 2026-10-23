@@ -54,7 +54,9 @@ fn breaker_partial_graphql_errors_do_not_trash_notes() {
     resp["data"]["repositoryOwner"]["projectV2"]["items"]["nodes"] =
         json!([ok["data"]["repositoryOwner"]["projectV2"]["items"]["nodes"][0].clone(), inaccessible]);
     resp["errors"] = json!([{"type": "NOT_FOUND", "message": "Could not resolve to a node"}]);
-    run_sync(&FakeGh::with_pages(vec![resp]), &out);
+    // Partial errors abort the whole fetch before any write, so nothing is trashed.
+    let r = sync::run(&FakeGh::with_pages(vec![resp]), &config(1), &out, false, &mut Vec::new());
+    assert!(r.is_err(), "partial GraphQL errors must abort the sync");
     assert!(note_path(&out, 2).exists(), "note 2 was trashed on a partial error");
 }
 
@@ -73,9 +75,10 @@ fn breaker_deleted_status_line_is_restored_from_github() {
     assert_eq!(st.as_deref(), Some("Review"));
 }
 
-/// Break 4: a typo in the vault (`done`) freezes the note. A GitHub move to
-/// Review is never shown in the note, and fixing the typo later pushes Done
-/// to GitHub over that Review move without a conflict.
+/// Break 4: a typo in the vault (`done`) freezes the note (plan: invalid values are
+/// left alone, so the note keeps the typo while it sits). A GitHub move to Review
+/// meanwhile must not be lost: fixing the typo to Done must be a CONFLICT, not a
+/// silent push over Review.
 #[test]
 fn breaker_typo_then_fix_overwrites_github_move() {
     let out = tmp("breaker-typo");
@@ -87,13 +90,14 @@ fn breaker_typo_then_fix_overwrites_github_move() {
     let gh = one_board(&[(1, "Review")]);
     run_sync(&gh, &out);
     let mid = note::parse(&fs::read_to_string(&p).unwrap()).get_scalar("status");
-    assert_eq!(mid.as_deref(), Some("Review"), "GitHub move not shown while note has a typo");
+    assert_eq!(mid.as_deref(), Some("done"), "invalid vault value must be left alone");
 
     let text = fs::read_to_string(&p).unwrap();
-    fs::write(&p, text.replace("status: Review\n", "status: Done\n")).unwrap();
+    fs::write(&p, text.replace("status: done\n", "status: Done\n")).unwrap();
     let gh2 = one_board(&[(1, "Review")]);
     let log = run_sync(&gh2, &out);
     assert!(gh2.pushes.borrow().is_empty(), "Done pushed over GitHub's Review silently; log:\n{log}");
+    assert!(log.contains("CONFLICT"), "expected CONFLICT for Done vs Review; log:\n{log}");
 }
 
 /// Break 5: the state file is lost (deleted, or the output folder is restored

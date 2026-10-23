@@ -124,6 +124,18 @@ pub fn run(gh: &dyn Gh, cfg: &Config, out: &Path, dry_run: bool, log: &mut dyn W
                     let existing = disk.get(&key);
                     let rel = key.rel_path();
                     let target = existing.map(|(p, _)| p.clone()).unwrap_or_else(|| out.join(&rel));
+                    if existing.is_none() && target.exists() {
+                        // An unidentifiable file already sits at the target path (repo or number
+                        // line removed, CRLF, unparsable). Never overwrite the user's text.
+                        let _ = writeln!(
+                            log,
+                            "WARN unknown note {} blocks {}; not overwritten",
+                            rel.display(),
+                            key.to_string_key()
+                        );
+                        report.warnings += 1;
+                        continue;
+                    }
                     let mut note = existing.map(|(_, n)| n.clone()).unwrap_or_default();
                     let needs = existing.is_none() || note.needs_write(&managed);
                     if !needs {
