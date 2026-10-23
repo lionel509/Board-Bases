@@ -32,6 +32,6 @@ Syncing twice in a row with no changes writes nothing.
 
 ## Obsidian
 
-The kanban view type is not emitted: it could not be verified (the installed build, 1.9.12, has no kanban type). Revisit once the 1.14.5 syntax is confirmed.
+Each board's `.base` file holds a `kanban` view named Board, grouped by status in the order Planned, In PR, Review, Done, then a `table` view named Table. The kanban view needs Obsidian 1.14.5 or newer; older builds reject the `groupBy` object.
 
 MIT licensed.
