@@ -16,7 +16,7 @@ It needs `gh` authenticated with the `project` scope. Each run is one short proc
 
 - One note per issue, PR or draft: `notes/<owner>/<repo> <number>.md`, `notes/drafts/<id>.md`. Frontmatter: title, status, repo, number, type, state, url, boards, updated.
 - Only `status` is two-way. Other managed fields are rewritten from GitHub. Extra frontmatter keys and the body are never touched.
-- One `<board name>.base` per board, filtered on that board: a kanban grouped by status (Planned, In PR, Review, Done) and a table view.
+- One `<board name>.base` per board, filtered on that board: a table view grouped by status.
 
 ## Conflicts
 
@@ -32,6 +32,6 @@ Syncing twice in a row with no changes writes nothing.
 
 ## Obsidian
 
-The `.base` kanban uses the Bases syntax from Obsidian 1.14. Older builds show the table view in the same file.
+The kanban view type is not emitted: it could not be verified (the installed build, 1.9.12, has no kanban type). Revisit once the 1.14.5 syntax is confirmed.
 
 MIT licensed.

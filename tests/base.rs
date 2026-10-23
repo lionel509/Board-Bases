@@ -8,27 +8,9 @@ fn render_matches_fixture() {
   and:
     - 'boards.contains(\"lionel509/4\")'
 views:
-  - type: kanban
-    name: Obsidian Tooling
-    groupBy:
-      property: note.status
-      direction: ASC
-    groupOrder:
-      - Planned
-      - In PR
-      - Review
-      - Done
-    order:
-      - note.title
-      - note.repo
-      - note.number
-      - note.type
-      - note.state
   - type: table
-    name: Table
-    groupBy:
-      property: note.status
-      direction: ASC
+    name: Obsidian Tooling
+    groupBy: note.status
     order:
       - note.title
       - note.status

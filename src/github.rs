@@ -113,6 +113,9 @@ fn fetch_inner(gh: &dyn Gh, b: &BoardConfig) -> Result<(BoardData, Option<u64>),
         }
         let page = &proj["items"];
         for n in page["nodes"].as_array().cloned().unwrap_or_default() {
+            if n["content"].is_null() && n["isArchived"].as_bool() != Some(true) {
+                return Err(format!("{}/{}: item {} returned null content; refusing partial data", b.owner, b.number, n["id"].as_str().unwrap_or("?")));
+            }
             if let Some(it) = parse_item(&n) {
                 items.push(it);
             }

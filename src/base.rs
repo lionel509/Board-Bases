@@ -10,27 +10,9 @@ pub fn render(board: &BoardConfig) -> String {
   and:
     - 'boards.contains(\"{key}\")'
 views:
-  - type: kanban
-    name: {name}
-    groupBy:
-      property: note.status
-      direction: ASC
-    groupOrder:
-      - Planned
-      - In PR
-      - Review
-      - Done
-    order:
-      - note.title
-      - note.repo
-      - note.number
-      - note.type
-      - note.state
   - type: table
-    name: Table
-    groupBy:
-      property: note.status
-      direction: ASC
+    name: {name}
+    groupBy: note.status
     order:
       - note.title
       - note.status
