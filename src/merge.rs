@@ -62,10 +62,10 @@ pub fn plan(
             Some(e) => e.status != it.status,
         }),
     };
-    // A missing or empty status line is not a vault edit: GitHub's value is restored.
+    // A missing, empty, `~` or `null` status line is not a vault edit: GitHub's value is restored.
     // With no base snapshot (state file lost), any valid vault value counts as an edit,
     // so a differing GitHub status surfaces as a CONFLICT instead of a silent revert.
-    let v_opt = vault_status.filter(|s| !s.is_empty());
+    let v_opt = vault_status.filter(|s| !matches!(*s, "" | "~" | "null"));
     let vault_changed = note_exists && v_opt.is_some() && base.map_or(true, |b| v_opt != b.status.as_deref());
 
     let mut acts = Vec::new();

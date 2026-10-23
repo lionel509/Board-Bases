@@ -74,8 +74,19 @@ fn fetch_inner(gh: &dyn Gh, b: &BoardConfig) -> Result<(BoardData, Option<u64>),
         let resp = gh.graphql(&query(&b.owner, b.number, after.as_deref()))?;
         // Partial GraphQL errors (data plus errors) mean some items were not returned.
         // Treating them as success would make the sync trash those items' notes.
-        if let Some(e) = resp.get("errors") {
-            return Err(format!("{}/{}: {}", b.owner, b.number, e));
+        if let Some(errs) = resp.get("errors") {
+            // Name the board and, where GitHub gives one, the item (its path in the response).
+            let detail: Vec<String> = errs
+                .as_array()
+                .map(|a| a.iter().map(|x| {
+                    let msg = x["message"].as_str().unwrap_or("unknown error");
+                    match x.get("path") {
+                        Some(p) => format!("{msg} (path {p})"),
+                        None => msg.to_string(),
+                    }
+                }).collect())
+                .unwrap_or_else(|| vec![errs.to_string()]);
+            return Err(format!("board {}/{}: GraphQL errors, no items used: {}", b.owner, b.number, detail.join("; ")));
         }
         let data = &resp["data"];
         if budget.is_none() {

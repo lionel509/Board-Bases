@@ -134,3 +134,16 @@ fn first_sync_with_no_state_writes_and_never_pushes() {
     assert_eq!(written_status(&acts), "Planned");
     assert!(new.is_some());
 }
+
+#[test]
+fn tilde_and_null_vault_status_are_not_vault_edits() {
+    // A hand-typed `status: ~` or `status: null` is YAML null, same as an empty value.
+    let (a, ai) = board(1, Some("Planned"));
+    let base = snap("Planned", &[(1, "Planned")]);
+    for v in ["~", "null"] {
+        let (acts, _) = plan(&key(), Some(&base), Some(v), &[(&a, &ai)], true);
+        assert!(!acts.iter().any(|x| matches!(x, Action::Warn(_))), "{v} warned");
+        assert!(pushes(&acts).is_empty(), "{v} pushed");
+        assert_eq!(written_status(&acts), "Planned", "{v} did not restore GitHub's status");
+    }
+}
