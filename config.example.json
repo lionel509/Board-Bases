@@ -1,0 +1,17 @@
+{
+  "output": "~/Documents/Citadel/Boards",
+  "boards": [
+    {"owner": "lionel509", "number": 4, "name": "Obsidian Tooling"},
+    {"owner": "lionel509", "number": 5, "name": "Claude Tooling"},
+    {"owner": "lionel509", "number": 6, "name": "Kaggle Playground"},
+    {"owner": "lionel509", "number": 7, "name": "Kaggle Hackathons"},
+    {"owner": "lionel509", "number": 8, "name": "Work"},
+    {"owner": "lionel509", "number": 9, "name": "Hack Club"},
+    {"owner": "Applied-Dynamics", "number": 1, "name": "Applied Dynamics"},
+    {"owner": "Applied-Dynamics", "number": 2, "name": "Engine"},
+    {"owner": "Applied-Dynamics", "number": 3, "name": "Editor"},
+    {"owner": "Applied-Dynamics", "number": 4, "name": "Channels"},
+    {"owner": "Applied-Dynamics", "number": 5, "name": "Publish & Analytics"},
+    {"owner": "Applied-Dynamics", "number": 6, "name": "Docs & Lessons"}
+  ]
+}
